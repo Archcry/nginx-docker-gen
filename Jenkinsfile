@@ -36,7 +36,7 @@ pipeline {
         stage("Build docker image") {
             steps {
                 gitlabCommitStatus(name: 'Build Docker image') {
-                    sh "docker build -t ${PRODUCT_NAME} ."
+                    sh "docker build --pull --force-rm -t ${PRODUCT_NAME} ."
                 }
             }
         }
