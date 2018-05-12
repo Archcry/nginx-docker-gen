@@ -10,7 +10,7 @@ pipeline {
 	}
 
     options {
-        gitlabBuilds(builds: ['Initialize build', 'Build Docker image', 'Push Docker image to Registry', 'Deploy Docker image'])
+        gitlabBuilds(builds: ['Initialize build', 'Build Docker image', 'Push Docker image to Registry', 'Deploy docker image'])
     }
 
     post {
@@ -19,10 +19,10 @@ pipeline {
         }
     }
 
-      stages {
-        stage('Get git commit hash (short)') {
+    stages {
+        stage('Initialize build') {
             steps {
-                gitlabCommitStatus(name: 'Initialize build') {
+                gitlabCommitStatus(name: STAGE_NAME) {
                     sh "git rev-parse --short HEAD > commitid"
                     script {
                         commitid = readFile('commitid').trim()
@@ -33,17 +33,21 @@ pipeline {
             }
         }
 
-        stage("Build docker image") {
+        stage("Build Docker image") {
             steps {
-                gitlabCommitStatus(name: 'Build Docker image') {
-                    sh "docker build --pull --force-rm -t ${PRODUCT_NAME} ."
+                gitlabCommitStatus(name: STAGE_NAME) {
+                    script {
+                        docker.withRegistry("https://${DOCKER_REGISTRY}", 'svc-docker-registry') {
+                            sh "docker build --pull --force-rm -t ${PRODUCT_NAME} ."
+                        }
+                    }
                 }
             }
         }
 
-        stage("Push docker image to Registry") {
+        stage("Push Docker image to Registry") {
             steps {
-                gitlabCommitStatus(name: 'Push Docker image to Registry') {
+                gitlabCommitStatus(name: STAGE_NAME) {
                     script {
                         docker.withRegistry("https://${DOCKER_REGISTRY}", 'svc-docker-registry') {
                             echo "Pushing ${PRODUCT_NAME} to ${DOCKER_REGISTRY}/${PRODUCT_NAME} tagged as '${commitid}' and 'latest'"
@@ -63,7 +67,7 @@ pipeline {
 
         stage("Deploy docker image") {
             steps {
-                gitlabCommitStatus(name: 'Deploy Docker image') {
+                gitlabCommitStatus(name: STAGE_NAME) {
                     script {
                         withCredentials([usernamePassword(credentialsId: 'svc-docker-registry', usernameVariable: 'REGISTRY_USER', passwordVariable: 'REGISTRY_PASS')]) {
                             // Get name of service inside docker compose file (should match)
