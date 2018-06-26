@@ -5,7 +5,7 @@ pipeline {
 
 	environment {
         DOCKER_REGISTRY = 'registry.sanderkoenders.nl'
-		PRODUCT_NAME = 'archcry/docker-gen'
+		PRODUCT_NAME = 'archcry/nginx-docker-gen'
         COMPOSE_FILE_GIT = 'ssh://git@git.sanderkoenders.nl:7999/docker/docker-compose.git'
 	}
 
